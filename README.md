@@ -2,7 +2,7 @@
 # 🔷 QLon Playground
 
 > 👁️ Visualize. ✍️ Describe. 🤖 Execute.  
-> **QLon** is a minimal declarative language to describe patterns over graphs.  
+> **QLon** is a minimal declarative language to describe patterns over graphs.
 > This playground lets you write QLon queries, visualize them, and get results instantly.
 
 ---
