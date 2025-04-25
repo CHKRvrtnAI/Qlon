@@ -130,7 +130,7 @@
             const match = Object.entries(rel.filters).every(([k, cond]) => compare(tgt[k], cond));
             if (match) {
               const srcId = lastIdMap[src];
-              const tgtId = tgt.name || tgt.id || rel.type + "_" + Math.random().toString(36).substr(2, 5);
+              const tgtId = rel.type + "_" + (tgt.name || tgt.id) + "_" + Math.random().toString(36).substr(2, 5);
               lastIdMap[tgt] = tgtId;
               newElements.push({ data: { id: tgtId, label: tgtId, info: JSON.stringify(tgt) } });
               newElements.push({ data: { source: srcId, target: tgtId } });
