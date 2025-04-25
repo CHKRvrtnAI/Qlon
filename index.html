@@ -1,9 +1,10 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>QLon Playground (Static Prototype)</title>
+  <title>QLon Playground (Extended)</title>
   <script src="https://unpkg.com/cytoscape@3.24.0/dist/cytoscape.min.js"></script>
   <style>
     body { font-family: sans-serif; display: flex; flex-direction: column; padding: 20px; }
@@ -26,11 +27,10 @@
   </style>
 </head>
 <body>
-  <h2>QLon Playground (Static Prototype)</h2>
+  <h2>QLon Playground (Extended)</h2>
 
-  <textarea id="query">people[name="Alice"]->friends select(name, age)</textarea>
+  <textarea id="query">people[name="Alice"] → friends[age=32]</textarea>
   <button onclick="runQLon()">Run</button>
-  <input type="file" id="jsonUpload" accept="application/json" />
 
   <div class="row">
     <div class="column">
@@ -38,7 +38,7 @@
       <pre id="output"></pre>
     </div>
     <div class="column">
-      <h3>Explanation (mock)</h3>
+      <h3>Explanation</h3>
       <pre id="explanation"></pre>
     </div>
   </div>
@@ -48,7 +48,7 @@
   <div class="tooltip" id="tooltip"></div>
 
   <script>
-    let data = {
+    const data = {
       people: [
         {
           name: "Alice",
@@ -66,56 +66,101 @@
       ]
     };
 
-    document.getElementById("jsonUpload").addEventListener("change", function(event) {
-      const file = event.target.files[0];
-      const reader = new FileReader();
-      reader.onload = function(e) {
-        try {
-          data = JSON.parse(e.target.result);
-          alert("JSON loaded successfully.");
-        } catch (err) {
-          alert("Invalid JSON file.");
-        }
-      };
-      reader.readAsText(file);
-    });
-
     function runQLon() {
       const query = document.getElementById("query").value;
-      const match = query.match(/(\w+)\[(\w+)="([^"]+)"\]->(\w+) select\(([^)]+)\)/);
-      if (!match) {
-        document.getElementById("output").textContent = "Invalid query syntax.";
+      if (query.includes("select(")) {
+        document.getElementById("output").textContent = "❌ Syntax not supported: remove 'select(...)'. Use QLon v1.0 syntax.";
         return;
       }
 
-      const [_, root, filterKey, filterVal, relation, selectFields] = match;
-      const fields = selectFields.split(",").map(f => f.trim());
-
-      let result = [];
-      let elements = [];
-      const roots = data[root] || [];
-      for (const item of roots) {
-        if (item[filterKey] === filterVal) {
-          const rootId = item[filterKey];
-          elements.push({ data: { id: rootId, label: rootId, info: JSON.stringify(item) }, classes: 'root' });
-
-          const targets = item[relation] || [];
-          for (const t of targets) {
-            const targetId = t.name;
-            elements.push({ data: { id: targetId, label: targetId, info: JSON.stringify(t) } });
-            elements.push({ data: { source: rootId, target: targetId } });
-
-            const entry = {};
-            for (const f of fields) entry[f] = t[f];
-            result.push(entry);
-          }
-        }
+      const segments = query.split("→").map(seg => seg.trim());
+      if (segments.length < 2) {
+        document.getElementById("output").textContent = "Invalid QLon syntax: use at least one →";
+        return;
       }
 
-      document.getElementById("output").textContent = JSON.stringify(result, null, 2);
-      document.getElementById("explanation").textContent = `You searched for '${filterVal}' in '${root}', followed '${relation}' and selected ${fields.join(", ")}.`;
+      let elements = [];
+      let currentSet = [];
 
+      function parseNode(segment) {
+        const nodeMatch = segment.match(/(\w+)(\[(.+?)\])?/);
+        if (!nodeMatch) return null;
+        const [, type, , rawFilters] = nodeMatch;
+        let filters = {};
+        if (rawFilters) {
+          rawFilters.split(",").forEach(f => {
+            const [key, val] = f.split("=");
+            const clean = val.replace(/['"]/g, "").trim();
+            
+      const opMatch = f.match(/([a-zA-Z0-9_]+)(!?=|>=|<=|>|<)(.+)/);
+      if (opMatch) {
+        const [, k, op, rawVal] = opMatch;
+        const cleanVal = rawVal.replace(/['"]/g, "").trim();
+        const val = isNaN(cleanVal) ? cleanVal : Number(cleanVal);
+        filters[k.trim()] = { op, val };
+      }
+    
+          });
+        }
+        return { type, filters };
+      }
+
+      const path = segments.map(parseNode);
+      currentSet = data[path[0].type] || [];
+      currentSet = currentSet.filter(obj =>
+        Object.entries(path[0].filters).every(([k, cond]) => compare(obj[k], cond))
+      );
+
+      let lastIdMap = {};
+
+      currentSet.forEach(obj => {
+        const id = obj.name || obj.id || path[0].type + "_" + Math.random().toString(36).substr(2, 5);
+        lastIdMap[obj] = id;
+        elements.push({ data: { id: id, label: id, info: JSON.stringify(obj) }, classes: 'root' });
+      });
+
+      for (let i = 1; i < path.length; i++) {
+        const rel = path[i];
+        const nextSet = [];
+        const newElements = [];
+
+        currentSet.forEach(src => {
+          const rels = src[rel.type] || [];
+          rels.forEach(tgt => {
+            const match = Object.entries(rel.filters).every(([k, cond]) => compare(tgt[k], cond));
+            if (match) {
+              const srcId = lastIdMap[src];
+              const tgtId = tgt.name || tgt.id || rel.type + "_" + Math.random().toString(36).substr(2, 5);
+              lastIdMap[tgt] = tgtId;
+              newElements.push({ data: { id: tgtId, label: tgtId, info: JSON.stringify(tgt) } });
+              newElements.push({ data: { source: srcId, target: tgtId } });
+              nextSet.push(tgt);
+            }
+          });
+        });
+
+        elements.push(...newElements);
+        currentSet = nextSet;
+      }
+
+      document.getElementById("output").textContent = JSON.stringify(currentSet, null, 2);
+      document.getElementById("explanation").textContent = `Parsed QLon path: ${segments.join(" → ")}`;
+      
       renderGraph(elements);
+    }
+
+    function compare(value, cond) {
+      if (typeof cond !== 'object' || !cond.op) return value === cond;
+      switch (cond.op) {
+        case "=": return value === cond.val;
+        case "!=": return value !== cond.val;
+        case ">": return value > cond.val;
+        case "<": return value < cond.val;
+        case ">=": return value >= cond.val;
+        case "<=": return value <= cond.val;
+        default: return false;
+      }
+    
     }
 
     function renderGraph(elements) {
