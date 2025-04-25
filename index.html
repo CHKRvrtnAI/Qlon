@@ -132,17 +132,18 @@
       const srcId = lastIdMap[JSON.stringify(src)];
       const tgtId = rel.type + "_" + (tgt.name || tgt.id) + "_" + Math.random().toString(36).substr(2, 5);
       lastIdMap[JSON.stringify(tgt)] = tgtId;
+
       newElements.push({ data: { id: tgtId, label: tgtId, info: JSON.stringify(tgt) } });
       newElements.push({ data: { source: srcId, target: tgtId } });
       nextSet.push(tgt);
 
-      // ✅ Only add to result if this is the last hop
       if (i === path.length - 1) {
         result.push(tgt);
       }
     }
   });
 });
+);
 
 
         elements.push(...newElements);
