@@ -1,63 +1,132 @@
-# QLon Playground 🕸️
 
-**Query Language for Graph Reasoning** — a minimal, human-readable and AI-friendly language to explore and traverse relational graphs, JSON structures and knowledge workflows.
+# 🔷 QLon Playground
 
-This playground is a lightweight prototype to test QLon queries directly on JSON-based graphs, with real-time visual output and mock explanations.
-
----
-
-## ✨ Features
-
-- 🧠 **Minimal syntax** inspired by XPath, Cypher and GraphQL  
-- 🧾 **Pattern matching** on graph-like JSON data  
-- 🔍 **Select fields**, navigate nested structures, and filter nodes  
-- 📊 **Visual graph rendering** with `cytoscape.js`  
-- 📂 **Load your own JSON files** to test live  
-- 💬 **Mock natural language explanations** (future: AI-powered)  
-- ✅ **MIT licensed**, open-source and modular
+> 👁️ Visualize. ✍️ Describe. 🤖 Execute.  
+> **QLon** is a minimal declarative language to describe patterns over graphs.  
+> This playground lets you write QLon queries, visualize them, and get results instantly.
 
 ---
 
-## 📦 Example Query
+## ✨ What is QLon?
+
+**QLon** is a human-friendly, AI-friendly, automation-ready language to express relationships between entities.
+
+Example:
+```qlon
+people[name="Alice"] → friends[age>30]
+```
+
+---
+
+## 📚 Basic Syntax
+
+### ▶️ Node
+```qlon
+Entity
+```
+
+### ▶️ Node with filters
+```qlon
+Entity[property="value"]
+Entity[prop!=42]
+Entity[score>=7.5]
+```
+
+### ▶️ Relationship
+```qlon
+EntityA → relation → EntityB
+```
+
+### ▶️ Multi-hop path
+```qlon
+A → B → C → D
+```
+
+---
+
+## 🔧 Supported Operators
+
+| Operator | Meaning              |
+|----------|----------------------|
+| `=`      | Equal                |
+| `!=`     | Not equal            |
+| `>`      | Greater than         |
+| `<`      | Less than            |
+| `>=`     | Greater or equal     |
+| `<=`     | Less or equal        |
+
+---
+
+## 🧠 Examples
 
 ```qlon
-nodes[process="SCM"] select(id, mode)
-→ Filters nodes with process = "SCM" and returns the id and mode of each.
+people[name="Alice"] → friends[age=32]
+people[age>=30] → friends[age!=28]
+```
 
-🚀 Quickstart
-Clone this repo or download the ZIP
+```qlon
+people → friends → coworkers[seniority>3]
+```
 
-Open index.html in your browser
+---
 
-Load your JSON graph (optional)
+## 🧪 Mock Dataset (included)
 
-Write QLon queries and explore the result & graph!
-
-📁 JSON structure expected
-The default format is a JSON object with:
-
-json
-Copia
-Modifica
+```json
 {
-  "nodes": [ { ... } ],
-  "connections": [ [fromId, toId], ... ]
+  "people": [
+    {
+      "name": "Alice",
+      "age": 30,
+      "friends": [
+        { "name": "Bob", "age": 28 },
+        { "name": "Carol", "age": 32 }
+      ]
+    },
+    {
+      "name": "Dave",
+      "age": 27,
+      "friends": [
+        { "name": "Alice", "age": 30 }
+      ]
+    }
+  ]
 }
-But you can fully customize the shape and adjust your queries accordingly.
+```
 
-🛣️ Roadmap
- Static prototype with local parsing
+---
 
- Visual graph rendering
+## 🧱 QLon Grammar (draft)
 
- Tooltip on nodes
+```ebnf
+query      ::= path
+path       ::= node ("→" node)*
+node       ::= NAME ("[" filters? "]")?
+filters    ::= filter ("," filter)*
+filter     ::= NAME operator value
+operator   ::= "=" | "!=" | ">" | "<" | ">=" | "<="
+value      ::= number | quoted_string
+```
 
- JSON upload
+---
 
- Connection path navigation (->connections->nodes)
+## 🚀 Roadmap
 
- AI explanation of queries (LLM-based)
+- [x] Logical operators support
+- [x] Interactive graph rendering
+- [ ] Wildcards and OR support (`*`, `|`)
+- [ ] `.qlon` file saving
+- [ ] JSON export
+- [ ] Prompt-to-QLon AI integration
 
- Full Lark parser with AST interpreter
+---
 
- Integration with agent memory and knowledge RAG
+## 🪪 License
+
+MIT © 2025 – [your_name_here]
+
+---
+
+## 💬 Contact & credits
+
+Built with ❤️ to define the future of **action-driven reasoning AI**.
