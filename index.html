@@ -115,7 +115,7 @@
 
       currentSet.forEach(obj => {
         const id = obj.name || obj.id || path[0].type + "_" + Math.random().toString(36).substr(2, 5);
-        lastIdMap[obj] = id;
+       lastIdMap[JSON.stringify(obj)] = id;
         elements.push({ data: { id: id, label: id, info: JSON.stringify(obj) }, classes: 'root' });
       });
 
@@ -129,9 +129,9 @@
   rels.forEach(tgt => {
     const match = Object.entries(rel.filters).every(([k, cond]) => compare(tgt[k], cond));
     if (match) {
-      const srcId = lastIdMap[src];
+      const srcId = lastIdMap[JSON.stringify(src)];
       const tgtId = rel.type + "_" + (tgt.name || tgt.id) + "_" + Math.random().toString(36).substr(2, 5);
-      lastIdMap[tgt] = tgtId;
+      lastIdMap[JSON.stringify(tgt)] = tgtId;
       newElements.push({ data: { id: tgtId, label: tgtId, info: JSON.stringify(tgt) } });
       newElements.push({ data: { source: srcId, target: tgtId } });
       nextSet.push(tgt);
