@@ -125,19 +125,25 @@
         const newElements = [];
 
         currentSet.forEach(src => {
-          const rels = src[rel.type] || [];
-          rels.forEach(tgt => {
-            const match = Object.entries(rel.filters).every(([k, cond]) => compare(tgt[k], cond));
-            if (match) {
-              const srcId = lastIdMap[src];
-              const tgtId = rel.type + "_" + (tgt.name || tgt.id) + "_" + Math.random().toString(36).substr(2, 5);
-              lastIdMap[tgt] = tgtId;
-              newElements.push({ data: { id: tgtId, label: tgtId, info: JSON.stringify(tgt) } });
-              newElements.push({ data: { source: srcId, target: tgtId } });
-              nextSet.push(tgt);
-            }
-          });
-        });
+  const rels = src[rel.type] || [];
+  rels.forEach(tgt => {
+    const match = Object.entries(rel.filters).every(([k, cond]) => compare(tgt[k], cond));
+    if (match) {
+      const srcId = lastIdMap[src];
+      const tgtId = rel.type + "_" + (tgt.name || tgt.id) + "_" + Math.random().toString(36).substr(2, 5);
+      lastIdMap[tgt] = tgtId;
+      newElements.push({ data: { id: tgtId, label: tgtId, info: JSON.stringify(tgt) } });
+      newElements.push({ data: { source: srcId, target: tgtId } });
+      nextSet.push(tgt);
+
+      // ✅ Only add to result if this is the last hop
+      if (i === path.length - 1) {
+        result.push(tgt);
+      }
+    }
+  });
+});
+
 
         elements.push(...newElements);
         currentSet = nextSet;
