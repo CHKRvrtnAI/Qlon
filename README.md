@@ -119,7 +119,7 @@ people → friends → coworkers[seniority>3]
       location: "Building 2"
     }
   ]
-}
+};
 ```
 
 ---
