@@ -74,21 +74,49 @@ people → friends → coworkers[seniority>3]
 
 ```json
 {
-  "people": [
+  people: [
     {
-      "name": "Alice",
-      "age": 30,
-      "friends": [
-        { "name": "Bob", "age": 28 },
-        { "name": "Carol", "age": 32 }
+      name: "Alice",
+      age: 30,
+      friends: [
+        { name: "Bob", age: 28, friends: [{ name: "Carol", age: 32 }] },
+        { name: "Carol", age: 32, friends: [{ name: "Bob", age: 28 }, { name: "Suzy", age: 18 }] }
+      ],
+      colleagues: [
+        { name: "Dave", age: 27, department: "HR" },
+        { name: "Eve", age: 35, department: "Marketing" }
       ]
     },
     {
-      "name": "Dave",
-      "age": 27,
-      "friends": [
-        { "name": "Alice", "age": 30 }
-      ]
+      name: "Dave",
+      age: 27,
+      friends: [{ name: "Alice", age: 30 }],
+      department: "HR"
+    },
+    {
+      name: "Carol",
+      age: 32,
+      friends: [{ name: "Alice", age: 30 }],
+      colleagues: [{ name: "Eve", age: 35, department: "Marketing" }]
+    },
+    {
+      name: "Eve",
+      age: 35,
+      department: "Marketing",
+      friends: [{ name: "Bob", age: 28 }],
+      colleagues: [{ name: "Alice", age: 30 }]
+    }
+  ],
+  departments: [
+    {
+      name: "HR",
+      employees: [{ name: "Dave", age: 27 }],
+      location: "Building 1"
+    },
+    {
+      name: "Marketing",
+      employees: [{ name: "Eve", age: 35 }],
+      location: "Building 2"
     }
   ]
 }
