@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -48,22 +49,52 @@
 
   <script>
     const data = {
-      people: [
-        {
-          name: "Alice",
-          age: 30,
-          friends: [
-            { name: "Bob", age: 28 },
-            { name: "Carol", age: 32 }
-          ]
-        },
-        {
-          name: "Dave",
-          age: 27,
-          friends: [ { name: "Alice", age: 30 } ]
-        }
+  people: [
+    {
+      name: "Alice",
+      age: 30,
+      friends: [
+        { name: "Bob", age: 28, friends: [{ name: "Carol", age: 32 }] },
+        { name: "Carol", age: 32, friends: [{ name: "Bob", age: 28 }, { name: "Suzy", age: 18 }] }
+      ],
+      colleagues: [
+        { name: "Dave", age: 27, department: "HR" },
+        { name: "Eve", age: 35, department: "Marketing" }
       ]
-    };
+    },
+    {
+      name: "Dave",
+      age: 27,
+      friends: [{ name: "Alice", age: 30 }],
+      department: "HR"
+    },
+    {
+      name: "Carol",
+      age: 32,
+      friends: [{ name: "Alice", age: 30 }],
+      colleagues: [{ name: "Eve", age: 35, department: "Marketing" }]
+    },
+    {
+      name: "Eve",
+      age: 35,
+      department: "Marketing",
+      friends: [{ name: "Bob", age: 28 }],
+      colleagues: [{ name: "Alice", age: 30 }]
+    }
+  ],
+  departments: [
+    {
+      name: "HR",
+      employees: [{ name: "Dave", age: 27 }],
+      location: "Building 1"
+    },
+    {
+      name: "Marketing",
+      employees: [{ name: "Eve", age: 35 }],
+      location: "Building 2"
+    }
+  ]
+};
 
     function runQLon() {
       const query = document.getElementById("query").value;
@@ -79,6 +110,7 @@
       }
 
       let elements = [];
+  let result = [];
       let currentSet = [];
 
       function parseNode(segment) {
@@ -114,7 +146,7 @@
 
       currentSet.forEach(obj => {
         const id = obj.name || obj.id || path[0].type + "_" + Math.random().toString(36).substr(2, 5);
-        lastIdMap[obj] = id;
+        lastIdMap[JSON.stringify(obj)] = id;
         elements.push({ data: { id: id, label: id, info: JSON.stringify(obj) }, classes: 'root' });
       });
 
@@ -128,12 +160,13 @@
           rels.forEach(tgt => {
             const match = Object.entries(rel.filters).every(([k, cond]) => compare(tgt[k], cond));
             if (match) {
-              const srcId = lastIdMap[src];
+              const srcId = lastIdMap[JSON.stringify(src)];
               const tgtId = tgt.name || tgt.id || rel.type + "_" + Math.random().toString(36).substr(2, 5);
-              lastIdMap[tgt] = tgtId;
+              lastIdMap[JSON.stringify(tgt)] = tgtId;
               newElements.push({ data: { id: tgtId, label: tgtId, info: JSON.stringify(tgt) } });
               newElements.push({ data: { source: srcId, target: tgtId } });
               nextSet.push(tgt);
+              if (i === path.length - 1) result.push(tgt);
             }
           });
         });
