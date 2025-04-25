@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -115,7 +114,7 @@
 
       currentSet.forEach(obj => {
         const id = obj.name || obj.id || path[0].type + "_" + Math.random().toString(36).substr(2, 5);
-       lastIdMap[JSON.stringify(obj)] = id;
+        lastIdMap[obj] = id;
         elements.push({ data: { id: id, label: id, info: JSON.stringify(obj) }, classes: 'root' });
       });
 
@@ -125,26 +124,19 @@
         const newElements = [];
 
         currentSet.forEach(src => {
-  const rels = src[rel.type] || [];
-  rels.forEach(tgt => {
-    const match = Object.entries(rel.filters).every(([k, cond]) => compare(tgt[k], cond));
-    if (match) {
-      const srcId = lastIdMap[JSON.stringify(src)];
-      const tgtId = rel.type + "_" + (tgt.name || tgt.id) + "_" + Math.random().toString(36).substr(2, 5);
-      lastIdMap[JSON.stringify(tgt)] = tgtId;
-
-      newElements.push({ data: { id: tgtId, label: tgtId, info: JSON.stringify(tgt) } });
-      newElements.push({ data: { source: srcId, target: tgtId } });
-      nextSet.push(tgt);
-
-      if (i === path.length - 1) {
-        result.push(tgt);
-      }
-    }
-  });
-});
-);
-
+          const rels = src[rel.type] || [];
+          rels.forEach(tgt => {
+            const match = Object.entries(rel.filters).every(([k, cond]) => compare(tgt[k], cond));
+            if (match) {
+              const srcId = lastIdMap[src];
+              const tgtId = tgt.name || tgt.id || rel.type + "_" + Math.random().toString(36).substr(2, 5);
+              lastIdMap[tgt] = tgtId;
+              newElements.push({ data: { id: tgtId, label: tgtId, info: JSON.stringify(tgt) } });
+              newElements.push({ data: { source: srcId, target: tgtId } });
+              nextSet.push(tgt);
+            }
+          });
+        });
 
         elements.push(...newElements);
         currentSet = nextSet;
