@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>QLon Playground (Static Prototype)</title>
+  <script src="https://unpkg.com/cytoscape@3.24.0/dist/cytoscape.min.js"></script>
+  <style>
+    body { font-family: sans-serif; display: flex; flex-direction: column; padding: 20px; }
+    textarea { width: 100%; height: 80px; font-family: monospace; margin-bottom: 10px; }
+    pre { background: #f0f0f0; padding: 10px; white-space: pre-wrap; }
+    .row { display: flex; gap: 20px; }
+    .column { flex: 1; }
+    #graph { width: 100%; height: 400px; border: 1px solid #ccc; margin-top: 20px; }
+    .tooltip {
+      position: absolute;
+      background: #333;
+      color: #fff;
+      padding: 5px 10px;
+      border-radius: 5px;
+      font-size: 12px;
+      pointer-events: none;
+      display: none;
+      z-index: 100;
+    }
+  </style>
+</head>
+<body>
+  <h2>QLon Playground (Static Prototype)</h2>
+
+  <textarea id="query">people[name="Alice"]->friends select(name, age)</textarea>
+  <button onclick="runQLon()">Run</button>
+  <input type="file" id="jsonUpload" accept="application/json" />
+
+  <div class="row">
+    <div class="column">
+      <h3>Result</h3>
+      <pre id="output"></pre>
+    </div>
+    <div class="column">
+      <h3>Explanation (mock)</h3>
+      <pre id="explanation"></pre>
+    </div>
+  </div>
+
+  <h3>Graph View</h3>
+  <div id="graph"></div>
+  <div class="tooltip" id="tooltip"></div>
+
+  <script>
+    let data = {
+      people: [
+        {
+          name: "Alice",
+          age: 30,
+          friends: [
+            { name: "Bob", age: 28 },
+            { name: "Carol", age: 32 }
+          ]
+        },
+        {
+          name: "Dave",
+          age: 27,
+          friends: [ { name: "Alice", age: 30 } ]
+        }
+      ]
+    };
+
+    document.getElementById("jsonUpload").addEventListener("change", function(event) {
+      const file = event.target.files[0];
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        try {
+          data = JSON.parse(e.target.result);
+          alert("JSON loaded successfully.");
+        } catch (err) {
+          alert("Invalid JSON file.");
+        }
+      };
+      reader.readAsText(file);
+    });
+
+    function runQLon() {
+      const query = document.getElementById("query").value;
+      const match = query.match(/(\w+)\[(\w+)="([^"]+)"\]->(\w+) select\(([^)]+)\)/);
+      if (!match) {
+        document.getElementById("output").textContent = "Invalid query syntax.";
+        return;
+      }
+
+      const [_, root, filterKey, filterVal, relation, selectFields] = match;
+      const fields = selectFields.split(",").map(f => f.trim());
+
+      let result = [];
+      let elements = [];
+      const roots = data[root] || [];
+      for (const item of roots) {
+        if (item[filterKey] === filterVal) {
+          const rootId = item[filterKey];
+          elements.push({ data: { id: rootId, label: rootId, info: JSON.stringify(item) }, classes: 'root' });
+
+          const targets = item[relation] || [];
+          for (const t of targets) {
+            const targetId = t.name;
+            elements.push({ data: { id: targetId, label: targetId, info: JSON.stringify(t) } });
+            elements.push({ data: { source: rootId, target: targetId } });
+
+            const entry = {};
+            for (const f of fields) entry[f] = t[f];
+            result.push(entry);
+          }
+        }
+      }
+
+      document.getElementById("output").textContent = JSON.stringify(result, null, 2);
+      document.getElementById("explanation").textContent = `You searched for '${filterVal}' in '${root}', followed '${relation}' and selected ${fields.join(", ")}.`;
+
+      renderGraph(elements);
+    }
+
+    function renderGraph(elements) {
+      const tooltip = document.getElementById("tooltip");
+
+      const cy = cytoscape({
+        container: document.getElementById('graph'),
+        elements: elements,
+        style: [
+          {
+            selector: 'node',
+            style: {
+              'label': 'data(label)',
+              'background-color': '#0074D9',
+              'color': '#fff',
+              'text-valign': 'center',
+              'text-halign': 'center'
+            }
+          },
+          {
+            selector: 'edge',
+            style: {
+              'width': 2,
+              'line-color': '#ccc',
+              'target-arrow-color': '#ccc',
+              'target-arrow-shape': 'triangle'
+            }
+          },
+          {
+            selector: '.root',
+            style: {
+              'background-color': '#FF4136'
+            }
+          }
+        ],
+        layout: {
+          name: 'cose'
+        }
+      });
+
+      cy.on('mouseover', 'node', function(evt) {
+        const node = evt.target;
+        tooltip.style.display = 'block';
+        tooltip.textContent = node.data('info');
+      });
+
+      cy.on('mouseout', 'node', function() {
+        tooltip.style.display = 'none';
+      });
+
+      cy.on('mousemove', function(evt) {
+        tooltip.style.left = evt.renderedPosition.x + 20 + 'px';
+        tooltip.style.top = evt.renderedPosition.y + 20 + 'px';
+      });
+    }
+  </script>
+</body>
+</html>
