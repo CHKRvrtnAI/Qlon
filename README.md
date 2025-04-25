@@ -24,12 +24,6 @@ This playground is a lightweight prototype to test QLon queries directly on JSON
 nodes[process="SCM"] select(id, mode)
 → Filters nodes with process = "SCM" and returns the id and mode of each.
 
-qlon
-Copia
-Modifica
-nodes[process="SCM"]->mode select(.)
-→ Traverses into the mode field and selects its raw value.
-
 🚀 Quickstart
 Clone this repo or download the ZIP
 
