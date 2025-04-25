@@ -62,10 +62,9 @@ A → B → C → D
 ```qlon
 people[name="Alice"] → friends[age=32]
 people[age>=30] → friends[age!=28]
-```
-
-```qlon
-people → friends → coworkers[seniority>3]
+people[name="Alice"] → friends → friends[name="Suzy"]
+people[name="Alice"] → friends → friends
+people[name="Alice"] → friends[age=32] → friends
 ```
 
 ---
