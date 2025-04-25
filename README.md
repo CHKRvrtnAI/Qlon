@@ -123,7 +123,7 @@ value      ::= number | quoted_string
 
 ## 🪪 License
 
-MIT © 2025 – [your_name_here]
+MIT © 2025
 
 ---
 
